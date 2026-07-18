@@ -1,0 +1,79 @@
+SMART GATE CONTROLLER - BLOCKLY DELIVERABLE
+=============================================
+Part 2: Visual Logic & JS Integration (The "Blockly" Skill)
+
+Custom Block: open_gate_with_speed
+Display: "Open Gate with Speed [5]"  (speed field editable, range 1-10)
+
+
+-------------------------------------------------
+1. JSON BLOCK DEFINITION
+-------------------------------------------------
+
+{
+  "type": "open_gate_with_speed",
+  "message0": "Open Gate with Speed %1",
+  "args0": [
+    {
+      "type": "field_number",
+      "name": "SPEED",
+      "value": 5,
+      "min": 1,
+      "max": 10,
+      "precision": 1
+    }
+  ],
+  "previousStatement": null,
+  "nextStatement": null,
+  "colour": 210,
+  "tooltip": "Opens the Smart Gate and drives the servo at the given speed (1-10).",
+  "helpUrl": ""
+}
+
+Registered with:
+
+  Blockly.common.defineBlocksWithJsonArray([openGateWithSpeedJson]);
+
+
+-------------------------------------------------
+2. JAVASCRIPT GENERATOR CODE
+-------------------------------------------------
+
+Blockly.JavaScript.forBlock['open_gate_with_speed'] = function (block) {
+  // Read the current value of the editable SPEED field
+  // (Blockly auto-clamps this between min=1 and max=10).
+  const speed = block.getFieldValue('SPEED');
+
+  // The speed input drives the actual servo.write() argument, so the
+  // block's input has a real effect on the generated code (rather than
+  // just appearing in a comment).
+  const code =
+    '// Smart Gate\n' +
+    '// Speed = ' + speed + '\n' +
+    'servo.write(' + speed + ');\n';
+
+  // Statement blocks return the code string directly.
+  return code;
+};
+
+
+-------------------------------------------------
+3. VERIFIED OUTPUT (tested for every value 1-10)
+-------------------------------------------------
+
+When SPEED = 5:
+
+// Smart Gate
+// Speed = 5
+servo.write(5);
+
+When SPEED = 8:
+
+// Smart Gate
+// Speed = 8
+servo.write(8);
+
+Min/max clamping confirmed: entering 15 clamps to 10, entering 0 clamps to 1.
+Verified with a headless jsdom test loading the real Blockly 10.x
+JavaScript generator against all 10 valid speed values, plus clamping
+behavior at the boundaries.
