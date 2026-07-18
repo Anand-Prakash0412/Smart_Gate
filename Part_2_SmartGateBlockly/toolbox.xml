@@ -1,0 +1,33 @@
+<!--
+  toolbox.xml
+  -----------------------------------------------------------------------
+  This file defines the TOOLBOX shown on the left side of the Blockly
+  workspace: the palette of categories and blocks the user can drag from.
+
+  Structure:
+    <xml>                     - root element required by Blockly's XML
+                                toolbox format
+      <category name="...">   - one drawer/category in the toolbox
+        <block type="...">    - one draggable block inside that category
+      </category>
+    </xml>
+
+  The assignment requires exactly ONE category, "Smart Gate", containing
+  exactly ONE block, "Open Gate with Speed" (internal type
+  "open_gate_with_speed", defined in custom_blocks.js).
+
+  This XML is loaded in index.html via:
+      const toolboxXml = document.getElementById('toolbox');
+      Blockly.inject('blocklyDiv', { toolbox: toolboxXml, ... });
+
+  We embed it as an inline <xml id="toolbox"> block directly inside
+  index.html's <body> (Blockly's recommended approach), but we keep this
+  standalone toolbox.xml file too, as requested, for documentation /
+  reference purposes and so the toolbox definition can be inspected or
+  reused independently of index.html.
+-->
+<xml id="toolbox" style="display: none">
+  <category name="Smart Gate" colour="210">
+    <block type="open_gate_with_speed"></block>
+  </category>
+</xml>

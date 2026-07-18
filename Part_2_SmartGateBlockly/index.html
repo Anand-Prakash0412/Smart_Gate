@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<!--
+  index.html
+-->
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Smart Gate Controller - Blockly</title>
+
+  <!-- Our page styling (no external CSS framework needed) -->
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <header>
+    <h1>Smart Gate Controller — Blockly Project</h1>
+    <p>
+      Drag the <strong>"Open Gate with Speed"</strong> block from the
+      <strong>Smart Gate</strong> category into the workspace, set a speed
+      (1–10), then click <strong>Generate JavaScript</strong>.
+    </p>
+  </header>
+
+  <div id="blocklyDiv"></div>
+
+  <!--
+    TOOLBOX DEFINITION (inline XML).
+  -->
+  <xml id="toolbox" style="display: none">
+    <category name="Smart Gate" colour="210">
+      <block type="open_gate_with_speed"></block>
+    </category>
+  </xml>
+
+  <!-- Controls: the "Generate JavaScript" button -->
+  <div id="controls">
+    <button id="generateBtn">Generate JavaScript</button>
+  </div>
+
+  <!-- Output area: generated code is displayed here -->
+  <div id="outputWrapper">
+    <h2>Generated Code:</h2>
+    <pre id="generatedCode">// Click "Generate JavaScript" to see the output here.</pre>
+  </div>
+
+
+  <!-- 1. Blockly core -->
+  <script src="blockly/blockly_compressed.js"></script>
+
+  <!-- 2. Blockly's built-in blocks (logic, loops, math, text, lists...) -->
+  <script src="blockly/blocks_compressed.js"></script>
+
+  <!-- 3. JavaScript code generator core (creates Blockly.JavaScript) -->
+  <script src="blockly/javascript_compressed.js"></script>
+
+  <!-- 4. English language strings for Blockly's UI -->
+  <script src="blockly/msg/en.js"></script>
+
+  <!-- 5. Our custom block definition -->
+  <script src="custom_blocks.js"></script>
+
+  <!-- 6. Our custom generator for that block -->
+  <script src="generator.js"></script>
+
+  
+  <script>
+    'use strict';
+
+    const toolboxXml = document.getElementById('toolbox');
+
+    // Create ("inject") the visual Blockly workspace inside #blocklyDiv.
+    const workspace = Blockly.inject('blocklyDiv', {
+      toolbox: toolboxXml,
+      
+      grid: {
+        spacing: 25,
+        length: 3,
+        colour: '#e5e7eb',
+        snap: true
+      },
+      zoom: {
+        controls: true,
+        wheel: true,
+        startScale: 1.0,
+        maxScale: 3,
+        minScale: 0.3,
+        scaleSpeed: 1.2
+      },
+      trashcan: true
+    });
+
+    // Reference to the <pre> element where generated code is displayed.
+    const outputEl = document.getElementById('generatedCode');
+
+    // Reference to the "Generate JavaScript" button.
+    const generateBtn = document.getElementById('generateBtn');
+
+    
+    function generateCode() {
+      const code = Blockly.JavaScript.workspaceToCode(workspace);
+
+      if (!code || !code.trim()) {
+        outputEl.textContent =
+          '// No blocks in the workspace yet.\n' +
+          '// Drag "Open Gate with Speed" from the Smart Gate category ' +
+          'into the workspace first.';
+        return;
+      }
+
+      outputEl.textContent = code;
+    }
+
+    // Wire the button click to the generateCode function.
+    generateBtn.addEventListener('click', generateCode);
+  </script>
+
+</body>
+</html>
