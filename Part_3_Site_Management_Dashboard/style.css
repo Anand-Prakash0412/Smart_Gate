@@ -1,0 +1,50 @@
+  
+  html { font-family: 'Inter', sans-serif; }
+  .font-display { font-family: 'Rajdhani', sans-serif; }
+  .font-mono { font-family: 'JetBrains Mono', monospace; }
+
+  body {
+    background-color: #0A0E1A;
+    background-image:
+      radial-gradient(circle at 15% 0%, rgba(47,230,201,0.07), transparent 40%),
+      radial-gradient(circle at 85% 100%, rgba(245,166,35,0.05), transparent 40%);
+    background-attachment: fixed;
+  }
+
+  /* Pulsing "LIVE" dot */
+  @keyframes pulse-dot {
+    0%   { box-shadow: 0 0 0 0 rgba(52,211,153,0.55); }
+    70%  { box-shadow: 0 0 0 8px rgba(52,211,153,0); }
+    100% { box-shadow: 0 0 0 0 rgba(52,211,153,0); }
+  }
+  .pulse-dot { animation: pulse-dot 2s infinite; }
+
+  /* Scan ring shown behind the barrier icon during opening/closing */
+  @keyframes scan-spin { to { transform: rotate(360deg); } }
+  .scan-ring { animation: scan-spin 1.6s linear infinite; }
+
+  /* Slow ambient sweep on the status card border while a transition is active */
+  @keyframes edge-glow {
+    0%, 100% { opacity: 0.35; }
+    50% { opacity: 0.9; }
+  }
+  .edge-glow { animation: edge-glow 1.4s ease-in-out infinite; }
+
+  /* The boom-barrier arm: pivots around its left edge (the post).
+     JS toggles the rotation target; this transition is what makes
+     the movement read as "opening" / "closing" over ~2.5s. */
+  .gate-arm {
+    transform-origin: 8px 8px;
+    transition: transform 2.5s cubic-bezier(0.65, 0, 0.35, 1);
+  }
+  .gate-arm.is-open { transform: rotate(-78deg); }
+
+  /* Thin, unobtrusive scrollbar for the activity log */
+  .log-scroll::-webkit-scrollbar { width: 6px; }
+  .log-scroll::-webkit-scrollbar-track { background: transparent; }
+  .log-scroll::-webkit-scrollbar-thumb { background: #253049; border-radius: 999px; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .pulse-dot, .scan-ring, .edge-glow { animation: none !important; }
+    .gate-arm { transition: none !important; }
+  }

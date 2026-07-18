@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Site Management Dashboard — Gate Control</title>
+
+<!-- Tailwind CDN: utility classes, no build step -->
+<script src="https://cdn.tailwindcss.com"></script>
+
+<!-- Google Fonts: Rajdhani (HUD/industrial display), Inter (body), JetBrains Mono (data/log readouts) -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="style.css">
+</head>
+
+<body class="min-h-screen text-[#E7ECF5] px-4 py-8 md:px-10 md:py-10">
+
+  <div class="max-w-6xl mx-auto space-y-6">
+
+    <!-- ============================= HEADER ============================= -->
+    <header class="flex flex-col md:flex-row md:items-end md:justify-between gap-4 border-b border-white/5 pb-6">
+      <div>
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-lg bg-[#111827] border border-white/10 flex items-center justify-center">
+            <!-- Minimal barrier-gate glyph, echoes the status card icon -->
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+              <circle cx="5" cy="19" r="1.6" fill="#2FE6C9"/>
+              <rect x="4.3" y="4" width="2.2" height="15" rx="1" fill="#3A4763"/>
+              <rect x="5" y="5" width="15" height="2.4" rx="1.2" fill="#2FE6C9"/>
+            </svg>
+          </div>
+          <h1 class="font-display font-700 text-2xl md:text-3xl tracking-wide uppercase text-white">
+            Site Management Dashboard
+          </h1>
+        </div>
+        <p class="mt-1.5 text-sm text-[#7C8AA5] font-medium">
+          Perimeter Gate &amp; Access Control — Zone 4 · North Vehicle Entry
+        </p>
+      </div>
+
+      <div class="flex items-center gap-5">
+        <div id="clock" class="font-mono text-sm text-[#7C8AA5] tabular-nums"></div>
+        <div class="flex items-center gap-2 bg-[#111827] border border-white/10 rounded-full pl-2.5 pr-3.5 py-1.5">
+          <span class="relative flex h-2.5 w-2.5">
+            <span class="pulse-dot absolute inline-flex h-full w-full rounded-full bg-emerald-400"></span>
+            <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-400"></span>
+          </span>
+          <span class="font-mono text-xs font-medium tracking-widest text-emerald-300">LIVE</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- ============================= MAIN GRID ============================= -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+
+      <!-- ---------- LIVE FEED STATUS CARD (signature element) ---------- -->
+      <section id="statusCard"
+        class="lg:col-span-2 relative overflow-hidden rounded-2xl border bg-[#10172A]/90 backdrop-blur p-6 md:p-8 flex flex-col justify-between transition-colors duration-500 border-white/10">
+
+        <!-- ambient side accent, colored per state via JS -->
+        <div id="statusEdge" class="absolute inset-x-0 top-0 h-1 bg-slate-500/40"></div>
+
+        <div class="flex items-start justify-between gap-4">
+          <div>
+            <p class="font-mono text-xs tracking-[0.2em] text-[#7C8AA5] uppercase mb-2">Live Feed Status</p>
+            <div class="flex items-center gap-3">
+              <span id="statusIcon" class="w-3 h-3 rounded-full bg-slate-400"></span>
+              <h2 id="statusLabel" class="font-display font-700 text-3xl md:text-4xl uppercase tracking-wide text-slate-200">
+                Gate Closed
+              </h2>
+            </div>
+            <p id="statusSub" class="font-mono text-sm text-[#7C8AA5] mt-2">STATE: CLOSED &nbsp;·&nbsp; AWAITING VEHICLE</p>
+          </div>
+
+          <!-- Boom barrier illustration: rotates open/closed, scan ring appears mid-transition -->
+          <div class="relative w-20 h-20 shrink-0 flex items-center justify-center">
+            <svg id="scanRing" class="scan-ring absolute w-20 h-20 opacity-0 transition-opacity duration-300" viewBox="0 0 80 80" fill="none">
+              <circle cx="40" cy="40" r="34" stroke="#F5A623" stroke-width="2" stroke-dasharray="8 10" stroke-linecap="round"/>
+            </svg>
+            <svg width="64" height="64" viewBox="0 0 64 64" fill="none">
+              <!-- post -->
+              <rect x="9" y="10" width="7" height="46" rx="2" fill="#3A4763"/>
+              <circle cx="12.5" cy="56" r="4" fill="#1B2438"/>
+              <!-- pivoting arm (16,16 local origin matches gate-arm transform-origin scaled) -->
+              <g id="gateArm" class="gate-arm">
+                <rect x="8" y="12" width="46" height="8" rx="3" fill="#2FE6C9"/>
+                <rect x="8" y="12" width="10" height="8" rx="3" fill="#F5A623"/>
+              </g>
+            </svg>
+          </div>
+        </div>
+
+        <!-- transition progress bar (only visible while opening/closing) -->
+        <div class="mt-6">
+          <div id="progressTrack" class="h-1.5 w-full bg-white/5 rounded-full overflow-hidden opacity-0 transition-opacity duration-300">
+            <div id="progressBar" class="h-full w-0 bg-amber-400 rounded-full"></div>
+          </div>
+        </div>
+
+        <!-- command readout + trigger control -->
+        <div class="mt-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pt-5 border-t border-white/5">
+          <p id="commandLine" class="font-mono text-xs text-[#5B6884]">
+            &gt; last command: <span class="text-[#8593AD]">servo.write(5)</span> // idle
+          </p>
+          <button id="triggerBtn"
+            class="font-display font-600 tracking-wide uppercase text-sm px-5 py-2.5 rounded-lg bg-[#2FE6C9] text-[#06110F] hover:bg-[#5CEFDA] active:scale-[0.98] transition disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-[#2FE6C9]">
+            Simulate Trigger
+          </button>
+        </div>
+      </section>
+
+      <!-- ---------- STAT CARDS ---------- -->
+      <section class="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-1 gap-5">
+
+        <div class="rounded-2xl border border-white/10 bg-[#10172A]/90 backdrop-blur p-5">
+          <p class="font-mono text-xs tracking-[0.15em] text-[#7C8AA5] uppercase">Today's Entries</p>
+          <p id="statEntries" class="font-display font-700 text-3xl text-white mt-2 tabular-nums">0</p>
+          <p class="text-xs text-[#5B6884] mt-1">Vehicles processed since 00:00</p>
+        </div>
+
+        <div class="rounded-2xl border border-white/10 bg-[#10172A]/90 backdrop-blur p-5">
+          <p class="font-mono text-xs tracking-[0.15em] text-[#7C8AA5] uppercase">Last Triggered</p>
+          <p id="statLastTriggered" class="font-display font-700 text-3xl text-white mt-2 tabular-nums">—</p>
+          <p class="text-xs text-[#5B6884] mt-1">Most recent sensor event</p>
+        </div>
+
+        <div class="rounded-2xl border border-white/10 bg-[#10172A]/90 backdrop-blur p-5">
+          <p class="font-mono text-xs tracking-[0.15em] text-[#7C8AA5] uppercase">Sensor Status</p>
+          <div class="flex items-center gap-2 mt-2">
+            <span class="relative flex h-2 w-2">
+              <span class="pulse-dot absolute inline-flex h-full w-full rounded-full bg-emerald-400"></span>
+              <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-400"></span>
+            </span>
+            <p class="font-display font-700 text-2xl text-white tabular-nums">Online</p>
+          </div>
+          <p class="text-xs text-[#5B6884] mt-1">HC-SR04 · Zone 4 North</p>
+        </div>
+      </section>
+    </div>
+
+    <!-- ============================= ACTIVITY LOG ============================= -->
+    <section class="rounded-2xl border border-white/10 bg-[#10172A]/90 backdrop-blur p-5 md:p-6">
+      <div class="flex items-center justify-between mb-4">
+        <p class="font-mono text-xs tracking-[0.2em] text-[#7C8AA5] uppercase">Activity Feed</p>
+        <p class="font-mono text-[11px] text-[#4A5673]">SIMULATED FEED · NO LIVE CONNECTION</p>
+      </div>
+      <div id="logFeed" class="log-scroll font-mono text-sm text-[#B7C0D6] space-y-1.5 max-h-52 overflow-y-auto pr-2">
+        <!-- log entries injected here by JS -->
+      </div>
+    </section>
+
+    <footer class="text-center text-[11px] font-mono text-[#3E4A66] pt-2 pb-4">
+      // Front-end mock only — gate state, sensor data, and the activity feed below are simulated client-side. No backend, no real hardware connection.
+    </footer>
+  </div>
+
+<script src="script.js"></script>
+</body>
+</html>
